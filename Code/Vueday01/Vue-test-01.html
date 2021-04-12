@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue测试</legend>
+            <!-- {{}}  插值表达式： -->
+            <h2>{{test01}}{{test02}}</h2>
+            <h2>{{test01}}</h2>
+            <h2>{{test02}}</h2>
+            <!-- <h2>{{test02 = test02 + "测试"}}</h2> -->
+            <h2>{{num + 20}}</h2>
+            <h2>{{age > 18? "恭喜成年" : "未成年"}}</h2>
+            <h2>{{test01.split('').reverse().jion('')}}</h2>
+            <!-- v-text 转义输出内容 -->
+            <!-- v-html 不转义输出 -->
+            <h2 v-text="html"></h2>
+            <h2 v-html="html"></h2>
+        </fieldset>
+    </div>
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<script>
+    //Vue是一个MVVM的架构，是一个响应式的架构，响应式的原理是ES5的Object.definedProperty()
+    //1. 实例化Vue
+    const vm = new Vue({
+        el: "#app", //vue的挂载区域，vue编译的范围
+        data: {     //数据层：Model
+            test01: "我是测试数据01",
+            test02: "我是测试数据02",
+            num: 80,
+            age: 18,
+            html: `<img src='http://123456.jgp' alt=''>`
+        }
+    })
+</script>
