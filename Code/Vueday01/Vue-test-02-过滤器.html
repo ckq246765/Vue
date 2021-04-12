@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fileName-过滤器-study.html.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>fileName-过滤器-study.html.html</legend>
+            <h1>{{msg | reverseParam}}</h1>
+            <h2>{{doller}}美元 》 {{doller | toRMB}}</h2>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    //需求：将美元转换为人民币
+    //过滤器 处理插值表达式的值
+    // 区别：局部创建的过滤器只能在当前组件使用，全局过滤器可以给所有组件使用
+    // 全局过滤器
+    Vue.filter("toRMB",function(input){
+        console.log(input)
+        return 6.8 * input + '元' //返回过滤器执行后的值
+    })
+
+    //局部过滤器
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗",
+            doller: 600
+        },
+        filters: {  //局部过滤器：在Vue中创建其实也是全局的
+            "reverseParam": function(input) {
+                return input.split("").reverse().jion('')
+            },
+            "toRMB": function(input) {
+                return 6.8 * input + '元'
+            }
+        }
+    })
+</script>

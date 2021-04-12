@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fileName-过滤器-study.html.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>fileName-过滤器-study.html.html</legend>
+            <h1>{{msg | reverseParam}}</h1>
+            <input type="text" v-focus="'abc'" />
+            <input type="text" v-focus="color" />
+            <input type="text" v-focus.keke="color" />
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // 虚拟Dom 实现页面高效更新，减少对Dom的操作
+    // 创建一个让input 输入元素获取焦点的自定义指令
+    // 全局自定义指令
+    Vue.directive("foces",{
+        // 只调用一次，指令第一次绑定到元素时候执行，可以对元素进行一次性的初始化设置
+        bind(el,binding) {
+            //el: 指令所在的 dom 元素
+            el.style.color = "red"
+
+            console.log("bind")
+        },
+        // 被绑定元素插入父节点时调用（仅保证父节点存在，但不一定已被插入文档中）
+        inserted(el,binding) {   //保证元素已存在
+            el.focus()  
+            el.style.color = binding.value
+
+            console.log(binding)
+            console.log("inserted")
+        },
+        update() {
+            console.log("update")
+        }
+    })
+
+    //局部过滤器
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗",
+            color: "green"
+        },
+        filters: {  //局部过滤器：在Vue中创建其实也是全局的
+            "reverseParam": function(input) {
+                return input.split("").reverse().jion('')
+            },
+            "toRMB": function(input) {
+                return 6.8 * input + '元'
+            }
+        }
+    })
+</script>
