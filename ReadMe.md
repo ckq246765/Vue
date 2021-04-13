@@ -493,4 +493,319 @@ C:\Windows\system32>nrm
 - vnode：Vue 编译生成的虚拟节点(了解)
 - oldVnode：上一个虚拟节点，仅在 update 和 componentUpdated 钩子中可用。(了解)  
 
-## 动态指令参数：
+## 动态指令参数：  
+指令的参数可以是动态的。例如，在 v-mydirective:[argument]="value" 中，argument 参数可以根据组件实例数据进行更新！这使得自定义指令可以在应用中被灵活使用。
+
+例如想要创建一个自定义指令，用来通过固定布局将元素固定在页面上。我们可以像这样创建一个通过指令值来更新竖直位置像素值的自定义指令：
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Vue-test-03-自定义指令-动态指令.html</title>
+  </head>
+  <style>
+      p,body {
+          margin:0;
+      }
+      p{
+          width: 150px;
+      }
+      #app {
+          height: 200px;
+          width: 300px;
+          overflow-y: scroll;
+          border:1px solid #ccc;
+
+      }
+    
+      p:nth-child(1){
+          height: 500px;
+      }
+      p:nth-child(2){
+          color:#ccc;
+          font-weight: bold;
+      }
+  </style>
+  <body>
+      <div id="app">
+          <p>向下滚动页面</p>
+          <p v-pin="100">粘在页面顶部100px</p>
+        </div>
+  </body>
+
+  </html>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+      Vue.directive('pin', {
+          bind: function (el, binding, vnode) {
+              el.style.position = 'fixed'
+              el.style.top = binding.value + 'px'
+          }
+      })
+
+      const vm = new Vue({
+          el: "#app",
+          data: {
+              msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+          }
+      })
+  </script>
+```     
+
+这会把该元素固定在距离页面顶部 100 像素的位置。但如果场景是我们需要把元素固定在左侧而不是顶部又该怎么办呢？这时使用动态参数就可以非常方便地根据每个组件实例来进行更新。  
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Vue-test-03-自定义指令-动态指令.html</title>
+  </head>
+  <style>
+      p,body {
+          margin:0;
+      }
+      p{
+          width: 150px;
+      }
+      #app {
+          height: 200px;
+          width: 300px;
+          overflow-y: scroll;
+          border:1px solid #ccc;
+
+      }
+    
+      p:nth-child(1){
+          height: 500px;
+      }
+      p:nth-child(2){
+          color:#ccc;
+          font-weight: bold;
+      }
+  </style>
+  <body>
+      <div id="app">
+  <!--         
+          <p>向下滚动页面</p>
+          <p v-pin="100">粘在页面顶部100px</p> -->
+
+          <div id="dynamicexample">
+              <h3>在这模块里面滚动 ↓</h3>
+              <p v-pin:[direction]="100">我被钉在这页纸的左边100像素处。</p>
+          </div>
+        </div>
+  </body>
+
+  </html>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+      // Vue.directive('pin', {
+      //     bind: function (el, binding, vnode) {
+      //         el.style.position = 'fixed'
+      //         el.style.top = binding.value + 'px'
+      //     }
+      // })
+
+      // const vm = new Vue({
+      //     el: "#app",
+      //     data: {
+      //         msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+      //     }
+      // })
+
+
+      Vue.directive('pin', {
+          bind: function (el, binding, vnode) {
+              el.style.position = 'fixed'
+              var s = (binding.arg == 'left' ? 'left' : 'top')
+              el.style[s] = binding.value + 'px'
+          }
+      })
+
+      new Vue({
+          el: '#app',
+          data: function () {
+              return {
+              direction: 'left'
+              }
+          }
+      })
+  </script>
+```
+
+## (进阶)Object.defineProperty()    
+用于对属性进行劫持
+  用法:Object.defineProperty(obj, prop, descriptor)
+  obj 要在其上定义属性的对象。
+  prop 要定义或修改的属性的名称。
+  descriptor 将被定义或修改的属性描述符。  
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">{{age}}</div>
+  </body>
+
+  </html>
+  <script>
+      let data = {
+          name: "李雷",
+          age: 12,
+          clothes: {
+              color: 'red',
+              size: 'small'
+          }
+      }
+
+      function observe(obj) {
+          if (!obj || typeof obj !== 'object') {
+              return
+          }
+          Object.keys(obj).forEach(key => {
+              defineReactive(obj, key, obj[key])
+          })
+      }
+
+      function defineReactive(obj, key, value) {
+          observe(value)
+          Object.defineProperty(obj, key, {
+              enumerable: true,
+              configurable: true,
+              get: function reactiveGetter() {
+                  console.log('get value')
+                  return value
+              },
+              set: function reactiveSetter(newVal) {
+                  console.log('change value')
+                  value = newVal
+                  updateDom('#app', key, value)
+              }
+          })
+      }
+
+      function updateDom(el, key, value) {
+          let dom = document.querySelector(el) || ""
+          if (!dom) {
+              throw new Error("没有dom")
+          }
+          let childNode = dom.childNodes[0];
+          if (!childNode['key']) {
+              let regExp = new RegExp("\{\{(" + key + ")\}\}")
+              let res = regExp.exec(childNode.nodeValue)
+              console.log(res)
+              childNode['key'] = res[1];
+          }
+          if (key === childNode['key'] && data[key]) {
+              childNode.nodeValue = value;
+          }
+      }
+      
+      observe(data)
+
+      updateDom('#app', 'age', 12)
+      // data.name = "李1"
+      // data.age = 12
+  </script>
+```
+
+## computed   
+计算属性出现的目的是解决模板中放入过多的逻辑会让模板过重且难以维护的问题；计算属性是基于它们的依赖进行缓存的   
+``` html
+  // 计算属性是基于它们的响应式依赖进行缓存的。只在相关响应式依赖发生改变时它们才会重新求值。这就意味着只要 message 还没有发生改变，多次访问 reversedMessage 计算属性会立即返回之前的计算结果，而不必再次执行函数。
+  computed: {
+      reversedMessage: function () {
+      return this.message.split('').reverse().join('')
+    }
+  }
+  //这也同样意味着下面的计算属性将不再更新，因为 Date.now() 不是响应式依赖：
+
+  computed: {
+    now: function () {
+      return Date.now()
+    }
+  }
+  //相比之下，每当触发重新渲染时，调用方法将总会再次执行函数。
+```  
+
+### 计算属性的 setter    
+计算属性默认只有 getter ，不过在需要时你也可以提供一个 setter ：   
+现在再运行 vm.fullName = 'John Doe' 时，setter 会被调用，vm.firstName 和 vm.lastName 也会相应地被更新。
+``` html
+    computed: {
+    fullName: {
+      // getter
+      get: function () {
+        return this.firstName + ' ' + this.lastName
+      },
+      // setter
+      set: function (newValue) {
+        var names = newValue.split(' ')
+        this.firstName = names[0]
+        this.lastName = names[names.length - 1]
+      }
+    }
+  }
+```
+
+## watch 侦听器(重要)     
+侦听器（watch）用来观察和响应 Vue 实例上的数据变动
+``` html
+  watch: {
+    firstName: function (val) {
+      this.fullName = val + ' ' + this.lastName
+    },
+    lastName: function (val) {
+      this.fullName = this.firstName + ' ' + val
+    }
+  }
+```   
+注意：在模板业务逻辑较重的时候,使用computed,在需要响应参数实时变化的时候使用watch
+## 深度监听
+``` html
+  var vm = new Vue({
+        el: '#app',
+        data: {
+          user: {
+            name: 'jack'
+          }
+        },
+        watch: {
+          // 监听对象不能使用下面这种写法，要使用深度监听
+          // user(newVal, oldVal) {
+          //   console.log('改变了');
+          // }
+
+          user: {
+            // handler这个函数名字固定
+            handler (newval) {
+              console.log('改变了');
+              console.log(newval.name);
+            },
+            // deep:true表示深度监听
+            deep: true
+          }
+        }
+      })
+```
+## 组件(重点)   
+从代码的角度上考虑就是 将一些可以复用的结构和逻辑封装在一起,在以后的项目中可以直接使用,类似于积木,使用组件可以拼接出一个页面   
+组件的特点:
+ - 高复用性
+ - 低耦合
+ ``` html
+  1.定义一个全局组件 Vue.component("name",{})
+  2.定义局部组件 在全局组件里面再注册组件
+ ```

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-03-computed.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-03-computed.html</legend>
+            <h1>{{msg}}</h1>
+            <h1>{{reverseMsg}}</h1>
+            <h1>{{timer}}</h1>
+            <h1>{{timer}}</h1>
+            <h1>{{timer}}</h1>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // computed: 计算属性出现的目的是解决模板中放入过多的逻辑会让模板过重且难以维护的问题；计算属性是基于它们的依赖进行缓存的
+    //1. 计算属性会缓存
+    //2. 计算属性是基于他们的（响应式）依赖进行改变
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        //computed的  getter
+        computed: {
+            reverseMsg() {  //computed中，函数名字可以直接当作Vue的属性使用
+                //计算属性是基于他们的（响应式）依赖进行改变
+                //改变msg值，会触发本函数
+                return this.msg.split('').reverse().jion('')
+            },
+            timer() {  //计算属性会缓存 
+                return +new Date()
+            },
+            lw: {
+                get() {
+                    return "computed的get,你会弹钢琴麽，不然，怎么会波动我的心弦" + msg
+                },
+                set(input) {  
+                    //也可以通过响应式依赖，改变 msg 的值，也会触发 get()
+                    //只有当自身的值发生改变，才会触发set()  vm.$data.lw = "change value" || vm.lw = "change value" 
+                    console.log(input)
+                }
+            }
+        }
+    })
+</script>

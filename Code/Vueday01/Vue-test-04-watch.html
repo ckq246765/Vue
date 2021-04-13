@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-04-watch.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-04-watch.html</legend>
+            <h1>{{msg}}</h1>
+            <input v-model="msg" />
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // watch : 侦听器（watch）用来观察和响应 Vue 实例上的数据变动
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗",
+            obj:{
+                name: 'keqi',
+                age: 24,
+                sex: 'man'
+            }
+        },
+        watch: {
+            msg(newVal, oldVal) {  //简单数据类型
+                console.log("%c newVal:"+ newVal , "color:green")
+                console.log("%c oldVal:"+ oldVal , "color:red")
+            },
+            //监听对象不能使用这种写法，要使用深度监听
+            obj(newVal, oldVal) { //复杂数据类型,不能和简单数据类型一样使用 error use
+                console.log("%c newVal:"+ newVal , "color:green")
+                console.log("%c oldVal:"+ oldVal , "color:red")
+            },
+            //监听复杂数据类型，需要开启深度监听 
+            obj: {
+                handler(newVal) {  //处理函数，名字必须是handler
+                    console.log('改变了');
+                    console.log(newval.name);
+                },
+                //deep:true表示深度监听
+                deep: true
+            }
+        }
+    })
+</script>
