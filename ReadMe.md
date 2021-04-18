@@ -808,4 +808,309 @@ C:\Windows\system32>nrm
  ``` html
   1.定义一个全局组件 Vue.component("name",{})
   2.定义局部组件 在全局组件里面再注册组件
- ```
+ ```     
+data 必须是一个函数  
+每个组件的都需要有独立的作用域,使用函数可以可以维护一份被返回对象的独立的拷贝,这样组件之间的值就不会混乱污染    
+一个组件的 data 选项必须是一个函数，因此每个实例可以维护一份被返回对象的独立的拷贝    
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+  <script src="./vue.js"></script>
+
+  <body>
+      <div id="app">
+          <my-com></my-com>
+      </div>
+  </body>
+  <!--定义模板需要使用template标签包裹起来 并且给上id 模板里面的内容需要用容器包裹起来-->
+  <template id="global">
+      <div>
+          <h1>全局组件</h1>
+          <h2>展示信息是{{msg}}</h2>
+          <button @click="show">点击</button>
+          <!--使用子组件-->
+          <my-child></my-child>
+      </div>
+  </template>
+
+  <!--子组件-->
+  <template id="child">
+      <div>
+          <h5>{{msg}}</h5>
+          <ul>
+              <li>新闻</li>
+              <li>娱乐</li>
+              <li>体育</li>
+          </ul>
+      </div>
+  </template>
+
+  </html>
+  <script>
+
+      //为什么需要组件 解耦合 可复用性 代码易维护....
+      //全局组件 第一个值 定义的名称
+      //组件还需要定义模板 模板就是当前组件所展示的内容
+
+      //组件里面还有一个属性 叫components 里面可以注册子组件
+      Vue.component("my-com", {
+          template: "#global",
+          data() {
+              return {
+                  msg: "全局组件"
+              }
+          },
+          methods: {
+              show() {
+                  alert(1)
+              }
+          },
+          components: {
+              "my-child": {
+                  template: "#child",
+                  data() {
+                      return {
+                          msg: "子组件的msg"
+                      }
+                  }
+              }
+          }
+      })
+      let vm = new Vue({
+          el: "#app",
+          data: {
+              msg: "组件"
+          }
+      })
+  </script>
+```  
+## 组件之间的通信     
+1. 父组件→子组件传值  
+  在父组件的模板作用域里面,给子组件的 组件标签绑定一个属性 :fa = "msg"  
+  再在 子组件里面 定义一个props:[ "fa"]来接收父组件传过来的值  
+``` html
+   //父组件
+  data() {
+              return {
+                  msg_global: "全局组件",
+                  gift: "这是给子组件的礼物" //需要传送的值
+              }
+          },
+  //父组件模板
+  <template id="global">
+      <div>
+          <h1>全局组件</h1>
+          <h2>展示信息是{{msg_global}}</h2>
+          <button @click="show">点击</button>
+          <slot></slot>
+          <!--使用子组件-->
+          <my-child :fa="msg_global" :resive="gift"></my-child>
+      </div>
+  </template>
+  //子组件接收
+  components: {
+              "my-child": {
+                  template: "#child",
+                  data() {
+                      return {
+                          msg_child: "子组件的msg",
+                          data: ""
+                      }
+                  },
+                  props: ["fa","resive"] //接收父组件传来的值
+              }
+          }
+```   
+2. 子传父  
+- 子传父需要在子组件的模板里面定义一个方法,调用该方法之后,通过 this.$emit("sendmsg","需要传递的参数")    
+- 在父组件的模板里面 找到子组件的标签 绑定一个事件名字就是 在$emit里面自定义的那个名字  
+- @sendmsg = "父组件里面定义的一个方法"  
+- 定义的方法不要用驼峰命名法 不然不生效*  
+
+3. 兄弟组件传值  
+``` html
+  //兄弟组件之间的传值
+  //  const app = new Vue({})
+  //  app.test = "测试";
+  //通过把需要传送的值挂载在 vue实例上 其它组件可以通过app.属性的方式去获得它
+```  
+4. Bus总线  
+为了提高组件的独立性与重用性，父组件会通过 props 向下传数据给子组件，当子组件有事情要告诉父组件时会通过 $emit 事件告诉父组件。如此确保每个组件都是独立在相对隔离的环境中运行，可以大幅提高组件的维护性。  
+4.1 EventBus的简介  
+EventBus 又称为事件总线。在Vue中可以使用 EventBus 来作为沟通桥梁的概念，就像是所有组件共用相同的事件中心，可以向该中心注册发送事件或接收事件，所以组件都可以上下平行地通知其他组件，但也就是太方便所以若使用不慎，就会造成难以维护的灾难，因此才需要更完善的Vuex作为状态管理中心，将通知的概念上升到共享状态层次。  
+4.2 初始化
+``` html
+  // event-bus.js
+  var EventBus = new Vue()
+```  
+另外一种方式，可以直接在项目中的 main.js 初始化 EventBus ：   
+这种方式初始化的 EventBus 是一个 全局的事件总线
+``` html
+  // main.js
+  Vue.prototype.$EventBus = new Vue()
+``` 
+4.3 发送事件 eventBus.js  
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+
+          <my-com1></my-com1>
+          <my-com2></my-com2>
+      </div>
+  </body>
+
+  </html>
+  <script src="./vue.js"></script>
+  <script src="./eventBus.js"></script>
+  <script>
+      Vue.component('myCom1', {
+          data() {
+              return {
+                  num: 1,
+                  deg: 180
+              }
+          },
+          template: `<div>
+                  组件1
+                  <button @click="send">点击</button>
+              </div>`,
+          methods: {
+              send() {
+                  eventBus.$emit("sended", {
+                      num: this.num,
+                      deg: this.deg
+                  })
+              }
+          }
+      })
+
+  </script>
+``` 
+4.4 接收
+``` html
+   Vue.component('myCom2', {
+        template: '<div>组件2</div>',
+        mounted() {
+        	//执行myCom1发送的事件
+            eventBus.$on("sended", function (input) { //resived
+                console.log(input)
+            })
+        }
+    })
+```  
+4.5 移除事件监听者  
+如果想移除事件的监听，可以像下面这样操作：
+``` html
+  EventBus.$off('sended', {})
+```  
+4. 在组件上使用 v-model(掌握)  
+自定义事件也可以用于创建支持 v-model 的自定义输入组件。记住：  
+``` html
+  <input v-model="searchText">
+``` 
+等价于：
+``` html
+  <input
+    v-bind:value="searchText"
+    v-on:input="searchText = $event.target.value"
+  >
+```  
+当用在组件上时，v-model 则会这样：
+``` html
+  <custom-input
+    v-bind:value="searchText"
+    v-on:input="searchText = $event"
+  ></custom-input>
+```  
+为了让它正常工作，这个组件内的 <input> 必须：  
+- 将其 value 特性绑定到一个名叫 value 的 prop 上
+- 在其 input 事件被触发时，将新的值通过自定义的 input 事件抛出    
+写成代码之后是这样的： 
+``` html
+  Vue.component('custom-input', {
+    props: ['value'],
+    template: `
+      <input
+        v-bind:value="value"
+        v-on:input="$emit('input', $event.target.value)"
+      >
+    `
+  })
+``` 
+现在 v-model 就应该可以在这个组件上完美地工作起来了：  
+``` html
+  <custom-input v-model="searchText"></custom-input>
+```  
+### 案例: 
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+          <my-input v-model="text"></my-input>
+          {{text}}
+      </div>
+  </body>
+
+  </html>
+  <template id="input">
+      <input :value="xixi" @input="input1" type="text">
+  </template>
+  <script src="./vue.js"></script>
+  <script>
+      //自定义组件上双向数据绑定的时候 会默认的连接一个叫做value的属性 并且接受一个叫做input的事件
+      let vm = new Vue({
+          el: "#app",
+          data: {
+              text: "传给子组件的值"
+          },
+          methods: {
+              resive(input) {
+                  console.log(input)
+                  this.text = input;
+              }
+          },
+          components: {
+              "myInput": {
+                  model: {
+                      event: "haha",
+                      prop: "xixi"
+                  },
+                  template: "#input",
+                  props: ['xixi'],
+                  methods: {
+                      input1($event) {
+                          //组件里面要使用v-model 这里必须传递input
+                          this.$emit('haha', $event.target.value)
+                      }
+                  }
+              },
+          }
+      })
+  </script>
+```

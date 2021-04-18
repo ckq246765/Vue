@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-05-闭包用法.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-05-闭包用法.html</legend>
+            <h1>{{msg}}</h1>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // 沙盒模式
+    // (function(){})
+
+    function random() {  //不会缓存
+        return Math.random()
+    }
+    var a = random()
+    var b = random()
+    var c = random()
+    var d = random()
+    var e = random()
+    console.log(a,b,c,d,e)
+
+    function random() {  //函数缓存
+        var num = Math.random()
+        return function(){
+            return num
+        }
+    }
+    var fn = random()
+    var a = fn()
+    var b = fn()
+    var c = fn()
+    var d = fn()
+    var e = fn()
+    console.log(a,b,c,d,e)
+
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        }
+    })
+</script>

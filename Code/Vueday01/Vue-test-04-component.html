@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-04-component.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-04-component.html</legend>
+            <h1>{{msg}}</h1>
+            <!-- 使用组件 -->
+            <first-com></first-com>
+        </fieldset>
+    </div>
+</body>
+</html>
+<!-- 内嵌模板 -->
+<!-- 结构必须要有父元素 -->
+<template id="tem">
+    <fieldset>
+        <legend>第一个组件</legend>
+        <h2>{{lrc}}</h2>
+        <button @click="show">点击</button>
+        <!-- 使用子组件 -->
+        <my-chilrd></my-chilrd>
+    </fieldset>
+</template>
+<template id="chilrd">
+    <div>
+        <h2>{{msg}}</h2>
+    </div>
+</template>
+<template id="son">
+    <div>
+        <h2>{{msg}}</h2>
+    </div>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    //组件的好处：高复用，低耦合
+    //注册全局组件
+    //细节：使用驼峰命名，在展示组件名的时候要将大写改成小写，并且用'-'连接
+
+    //步骤：1.使用Vue.component注册组件，传入组件名和option
+    //      2.定义组件结构，使用内嵌模板 template: "#id" 的方式编写结构，结构必须要有父元素，不能并行
+    //      3.展示组件，在Vue根组件的结构内（div#app）写上组件的名字
+    Vue.component("first-com",{ //option选项和Vue大致相同
+        // data: {
+        //     lrc: "憨憨"
+        // },
+        template: "#tem",
+        data() {
+            return {
+                lrc: "憨憨"
+            }
+        },
+        methods: {
+            show() {
+                alert("测试show()")
+            }
+        },
+        components: {
+            "my-chilrd": {
+                template: "#chilrd",
+                data() {
+                    return {
+                        msg: "我是子组件"
+                    }
+                },
+                components: {
+                    "my-son": {
+                        template: "#son",
+                        data() {
+                            return{
+                                msg: "憨憨"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+    })
+
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        }
+    })
+</script>

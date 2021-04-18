@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-05-keep-alive-缓存组件.html</title>
+</head>
+<style>
+    .tab-button {
+        padding: 6px 10px;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        background: #f0f0f0;
+        margin-bottom: -1px;
+        margin-right: -1px;
+    }
+
+    .tab-button:hover {
+        background: #e0e0e0;
+    }
+
+    .tab-button.active {
+        background: hotpink;
+    }
+
+    .tab {
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+    h1 {
+        margin:0;
+    }
+</style>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <button @click="tab">tab栏</button>
+            <button @click="detail">详情页</button>
+            <!-- 缓存组件状态 -->
+            <keep-alive> 
+                <div class="content" :is="dynamic"></div>
+            </keep-alive>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<template id="tabBar">
+    <fieldset>
+        <legend>tab栏</legend>
+        <button :class="['tab-button',{active: currentButton === btn}]"
+                    @click="currentButton = btn" v-for="btn in tabs">{{btn}}</button>
+            <div class="tab">
+                <h2 :is="currentTab"></h2>
+            </div>
+    </fieldset>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    Vue.component("detail-com",{template: '<h2>详情页</h2>'})
+    Vue.component("tab-bar",{
+        mounted(){
+
+        },
+        activated(){
+
+        },
+        deactivated(){
+
+        },
+        template: "#tabBar",
+        data() {
+            return {
+                msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗",
+                // tab: "tab",
+                tabs: ['email','home','mine','charge'],
+                currentButton: "home"
+                // currentTab: 'tab-email'
+            }
+        },
+        computed:{  //动态计算属性
+            currentTab(){
+                return "tab-" + this.currentButton
+            }
+        },
+        components: {
+            "tab-email": {template: '<h2>邮箱</h2>'},
+            "tab-home": {template: '<h2>主页</h2>'},
+            "tab-mine": {template: '<h2>个人中心</h2>'},
+            "tab-charge": {template: '<h2>小马哥：没钱玩你XXXX</h2>'}
+        }
+    })
+
+    const vm = new Vue({
+        el: "#app",
+        data:{
+            dynamic: "tab-bar"
+        },
+        methods: {
+            tab(){
+                this.dynamic = "tab-bar"
+            },
+            detail(){
+                this.dynamic = "detail-com"
+            }
+        }
+    })
+</script>

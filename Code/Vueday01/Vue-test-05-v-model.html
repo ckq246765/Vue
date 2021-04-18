@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-04-v-model.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-04-v-model.html</legend>
+            <h1>{{msg}}</h1>
+            <input type="text" v-model="msg"></input>
+            <input type="text" :value="msg" @input="msg = $event.target.value"></input>
+
+            <!-- 未使用语法糖：v-model 原理 -->
+            <custom-input :val="msg" @ipt="receve"></custom-input>
+            <!-- 使用语法糖：使用 v-model -->
+            <custom-input2 v-model="msg"></custom-input2>
+            <!-- 使用语法糖：使用 v-model 原理 -->
+            <custom-input2 :value="msg" @input="input"></custom-input2>
+
+            <!-- 使用语法糖：使用 v-model 原理 自定义属性 -->
+            <custom-input2 :hehe="msg" @haha="receve"></custom-input2>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<template id="custom">
+    <fieldset>
+        <legend>子组件</legend>
+        <input type="text" :value="val" @input="model"></input>
+    </fieldset>
+</template>
+
+<template id="custom2">
+    <fieldset>
+        <legend>子组件</legend>
+        <input type="text" :value="value" @input="ipt"></input>
+    </fieldset>
+</template>
+
+<!-- 使用语法糖：使用 v-model 原理 自定义属性 -->
+<template id="custom2">
+    <fieldset>
+        <legend>子组件</legend>
+        <input type="text" :value="hehe" @input="ipt"></input>
+    </fieldset>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    //1.必须动态绑定value 属性
+    //2.有一个叫做input 的事件
+    Vue.component("custom-input",{
+        templates: "#custom",
+        data(){
+            return {
+                val: "组件"
+            }
+        },
+        // props:['val'],
+        props:{  // 单向数据流，只读属性使用
+            val:{   // 属性验证
+                type: String,   // 规定传入参数的数据类型
+                required: true  // 表示该数据必传
+            }
+        },
+        methods: {
+            model(){
+                this.$emit("ipt",$event.target.value)
+            }
+        }
+    })
+
+    //使用 v-model
+    //会默认通过父子传值，传递一个‘value’的属性，默认会通过$emit发送一个‘input’的方法
+    Vue.component("custom-input",{
+        templates: "#custom2",
+        data(){
+            return {
+                val: "组件"
+            }
+        },
+        props:['value'],
+        // props:['hehe'],
+        // model(){ //自定义接受的属性和方法
+        //     event: "haha"//更改发送的方法
+        //     prop: "hehe"  //更改接受的属性
+        // },
+        methods: {
+            ipt(e){
+                // this.$emit("input",e.target.value)
+
+                this.$emit("haha",e.target.value)
+            }
+        }
+    })
+
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        methods:{
+            receve(){
+                this.msg = input
+            }
+        }
+    })
+</script>

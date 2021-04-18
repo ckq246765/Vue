@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-05-link-case.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-05-link-case.html</legend>
+            <!-- .native注册组件的原生dom事件  -->
+            <custom-link to="http://taobao.com" @click.native="active">
+                淘宝
+            </custom-link>
+            <custom-link to="http://baidu.com">
+                百度
+            </custom-link>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+
+<template id="link">
+    <fieldset>
+        <legend>link</legend>
+        {{to === current?'=>',""}}
+        <a :herf="to" @click.prevent="linkActive">
+            <slot></slot>
+        </a>
+    </fieldset>
+</template>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    let eventBus = new Vue()
+
+    Vue.component("custom-link",{
+        templates: "#link",
+        data() {
+            return {
+                link: "Slot插槽",
+                current: "http://taobao.com"
+            }
+        },
+        props:['to'],
+        methods: {
+            linkActive(){
+                console.log('组件事件')
+                // this.current = to
+                eventBus.$emit("changeCurrent",this.to)
+            }
+        },
+        mounted(){
+            eventBus.$on("changeCurrent",(input)=>{
+                this.current = input
+            })
+        }
+    })
+
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        methods: {
+            active(){
+                console.log('.native注册组件的原生dom事件')
+            }
+        }
+    })
+</script>

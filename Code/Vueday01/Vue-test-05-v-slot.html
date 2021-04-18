@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-05-v-slot.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <custom-slot>
+            <!-- 插槽入口 -->
+            <!-- <template v-slot:header="arg"> ：获得传过来的参数的对象-->
+            <template v-slot:header="{val}"> 
+                <fieldset>
+                    <legend>插槽传入的结构header</legend>
+                    <h1>{{msg}}</h1>
+                </fieldset>
+            </template>
+    
+            <fieldset slot="main">
+                <legend>插槽传入的结构main</legend>
+                <h1>{{msg}}</h1>
+            </fieldset>
+
+            <!-- 默认分发内容 -->
+            <h2>默认分发内容</h2>
+        </custom-slot>
+    </div>
+</body>
+
+</html>
+<template id="slot">
+    <fieldset>
+        <legend>slot</legend>
+        <h2>{{msg}}</h2>
+        
+        <!-- 插槽出口 -->
+        <!-- <slot></slot> -->
+        <div class="header"> 
+            <slot name="header" :val="arr"></slot>
+        </div>
+        <div class="main">
+            <slot name="main"></slot>
+        </div>
+
+        <!-- 默认展示分发内容 -->
+        <slot></slot>
+    </fieldset>
+</template>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    Vue.component("custom-slot",{
+        templates: "#slot",
+        data() {
+            return {
+                msg: "Slot插槽",
+                arr:['憨憨','吃饭','睡觉']
+            }
+        },
+        props:[],
+        methods: {
+            
+        }
+    })
+
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        }
+    })
+</script>
