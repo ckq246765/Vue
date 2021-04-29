@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-08-render.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <div>
+                <h1>虚拟节点</h1>
+                <p>这是文字</p>
+            </div>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // 调用 render 函数的时候，会直接替换$el 中的内容 render(){}
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        // c: createElement Vue提供创建VNode的方法
+        render(c) { // 返回值是 VNode(虚拟节点)
+            // return c('div','divdiv')
+            // return c('div',[c('h1','虚拟节点',c('p','这是文字'))])
+            return c('div',
+                {
+                    class:{  // 为VNode创建类名
+                        content: false
+                    },
+                    style: { // 为VNode创建样式
+                        color: red
+                    },
+                    attrs:{ // 为VNode创建属性
+                        id: "dv"
+                    }
+                },
+                [c('h1','虚拟节点',c('p','这是文字'))]
+            )
+        }
+    })
+</script>

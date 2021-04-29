@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-07-生命周期.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-07-生命周期.html</legend>
+            <h1 id="hh">{{msg}}</h1>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        beforeCreate() { // 创建之前，Vue实例化之后，初始化数据之前
+            console.group("beforeCreate Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("beforeCreate End")
+        },
+        created() { // 创建之后，已经初始化了$data 并且能够监听 data 的变化，此处可以修改 data
+            console.group("created Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("created End")
+        },
+        beforeMount() { // 已经有了数据和虚拟dom, 但是页面 模板数据 任未更新
+            console.group("beforeMount Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("beforeMount End")
+        },
+        mounted() { // 用 $el 替换了页面的el,并且挂载了dom
+            console.group("mounted Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("mounted End")
+        },
+        beforeUpdate() { // 会得到更新数据的 虚拟dom  基本不用
+            console.group("beforeUpdate Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("beforeUpdate End")
+        },
+        update() { // 会得到更新数据后的 dom   基本不用
+            console.group("update Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("update End")
+        },
+        beforeDestroy() { // 卸载定时器，卸载一些持续性的事件监听
+            console.group("beforeDestroy Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("beforeDestroy End")
+        },
+        destroy() { // 卸载完成 卸载定时器，卸载一些持续性的事件监听
+            console.group("destroy Start")
+            console.log(this.$el)
+            console.log(this.$data)
+            console.log(document.getElementById("hh").innerHTML)
+            console.group("destroy End")
+        }
+    })
+</script>

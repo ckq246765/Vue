@@ -1114,3 +1114,849 @@ EventBus 又称为事件总线。在Vue中可以使用 EventBus 来作为沟通�
       })
   </script>
 ```
+
+## 1.插槽slot(重点)  
+Vue 实现了一套内容分发的 API，将 <slot> 元素作为承载分发内容的出口。   
+下面是一个案例:
+``` html
+  v-slot 也有缩写，即把参数之前的所有内容 (v-slot:) 替换为字符 #。例如 v-slot:header 可以被重写为 #header：
+```
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+          <my-com>
+              <!-- v2.5具名插槽的写法 -->
+              <!-- <h1 slot="header">导航栏</h1> -->
+              <!-- v2.6传参方式 一定要用template包裹被分发的内容,再使用v-slot进行传递 v-slot的值可以是任意变量,并且也支持结构赋值 -->
+              <template slot="header">
+                  <h1>v2.6具名插槽</h1>
+              </template>
+              <template v-slot:main={arr}>
+                  <h1>轮播图</h1>
+                  <h1>{{arr}}</h1>
+                  <ul>
+                      <li v-for="item in arr">{{item}}</li>
+                  </ul>
+              </template>
+              <h1 slot="footer">联系方式</h1>
+              <!-- 非具名插槽的内容直接分发到默认slot -->
+              <template v-slot={val}>
+                  <h1>传递的参数是:{{val}}</h1>
+                  <h3>default</h3>
+              </template>
+          </my-com>
+      </div>
+  </body>
+
+  </html>
+  <template id="com">
+      <fieldset>
+          <legend>slot</legend>
+          <div class="header">
+              <slot name="header"></slot>
+          </div>
+          <div class="main">
+              <slot name="main" :arr="arr"></slot>
+          </div>
+          <div class="footer">
+              <slot name="footer"></slot>
+          </div>
+          <slot :val="msg"></slot>
+      </fieldset>
+  </template>
+  <script src="./vue.js"></script>
+  <script>
+      //slot的定义 分发组件内容
+      //slot可分发任意内容
+      //具名插槽
+      Vue.component("my-com", {
+          data() {
+              return {
+                  arr: ["吃饭", "睡觉", "打豆豆"],
+                  msg: "非具名插槽传递参数"
+              }
+          },
+          template: "#com"
+      })
+
+      // let obj = {
+      //     name: "韩没灭"
+      // }
+
+      // const { name } = obj
+
+      // console.log(name);
+
+      const vm = new Vue({
+          el: "#app"
+      })
+  </script>
+```
+### 1.1 es6模块化语法&断点调试
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+          {{msg}}
+      </div>
+  </body>
+
+  </html>
+  <!-- <script src="./vue.js"></script> -->
+  <script type="module">
+      import "./vue.js"//不支持file协议
+      debugger //debugger 调试错误执行到这步自动进入断点调试
+      const vm = new Vue({
+          el: "#app",
+          data: {
+              msg: "123"
+          }
+      })
+  </script>
+``` 
+### 1.2 customLink案例 
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+          <custom-link to="http://www.baidu.com">百度</custom-link>
+          <custom-link to="http://www.taobao.com">淘宝</custom-link>
+          <custom-link to="http://www.1000phone.com">千锋</custom-link>
+      </div>
+  </body>
+
+  </html>
+  <!-- <script src="./vue.js"></script> -->
+  <template id="link">
+      <div>
+          {{to==selected?"✈":""}}
+          <a :href="to" @click.prevent="active">
+              <slot></slot>
+          </a>
+      </div>
+  </template>
+  <script type="module">
+      import "./vue.js"//不支持file协议
+      // debugger //debugger 调试错误执行到这步自动进入断点调试
+      //需求 被选中的项 加上一个符号 ✈
+      let bus = new Vue();
+
+      Vue.component("custom-link", {
+          template: "#link",
+          props: ['to'],
+          data() {
+              return {
+                  selected: "http://www.baidu.com"
+              }
+          },
+          created() {
+              const _this = this;
+              bus.$on("addfj", function (input) {
+                  _this.selected = input
+              })
+          },
+          methods: {
+              active() {
+                  bus.$emit("addfj", this.to)
+              }
+          }
+      })
+
+
+      const vm = new Vue({
+          el: "#app",
+          data: {
+              msg: "123"
+          }
+      })
+  </script>
+```
+## 2.动态组件(重点)
+有的时候，在不同组件之间进行动态切换是非常有用的，比如在一个多标签的界面里：    
+Home component  
+上述内容可以通过 Vue 的 <component> 元素加一个特殊的 is 特性来实现：
+``` html
+  <!-- 组件会在 `currentTabComponent` 改变时改变 -->
+  <component v-bind:is="currentTabComponent"></component>
+```
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+
+  <body>
+      <div id="app">
+          <p :is="com"></p>
+      </div>
+  </body>
+
+  </html>
+  <script src="./vue.js"></script>
+  <script>
+      //is属性可以动态的切换组件
+      Vue.component("my-com1", { template: "<h1>组件1</h1>" })
+      Vue.component("my-com2", { template: "<h1>组件2</h1>" })
+      Vue.component("my-com3", { template: "<h1>组件3</h1>" })
+
+      const vm = new Vue({
+          el: "#app",
+          data: {
+              com: "my-com2"
+          }
+      })
+  </script>
+```
+在上述示例中，currentTabComponent 可以包括    
+已注册组件的名字，或 一个组件的选项对象  
+### tab切换案例
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+  <script src="./vue.js"></script>
+  <style>
+      .tab-button {
+          padding: 6px 10px;
+          border-top-left-radius: 3px;
+          border-top-right-radius: 3px;
+          border: 1px solid #ccc;
+          cursor: pointer;
+          background: #f0f0f0;
+          margin-bottom: -1px;
+          margin-right: -1px;
+      }
+
+      .tab-button:hover {
+          background: #e0e0e0;
+      }
+
+      .tab-button.active {
+          background: hotpink;
+      }
+
+      .tab {
+          border: 1px solid #ccc;
+          padding: 10px;
+      }
+      h1 {
+          margin:0;
+      }
+  </style>
+
+  <body>
+      <!-- is属性动态切换组件 tab切换案例-->
+      <!-- is属性里面写组件的名字 -->
+      <!-- is属性所在的标签会替换成组件内容 -->
+      <!-- 1.定义一个数据,用于渲染按钮 -->
+      <!-- 2.点击按钮添加hotpink背景色 -->
+      <!-- 动态组件会替换掉元素的标签 但会继承元素的属性 -->
+      <div id="app" class="demo">
+          <button @click="selected=item" :class="['tab-button',{active:item==selected}]"
+              v-for="item in tabs">{{item}}</button>
+          <div class="tab" :is="tab_com"></div>
+      </div>
+  </body>
+  <script>
+      Vue.component("tab-email", { template: "<h1>邮箱</h1>" })
+      Vue.component("tab-mine", { template: "<h1>个人中心</h1>" })
+      Vue.component("tab-home", { template: "<h1>主页</h1>" })
+      Vue.component("tab-charge", { template: "<h1>充值中心</h1>" })
+
+
+      const vm = new Vue({
+          el: "#app",
+          data: {
+              tabs: ["email", "mine", "home", "charge"],
+              selected: "home"
+          },
+          computed: {
+              tab_com() {
+                  return "tab-" + this.selected
+              }
+          }
+      })
+  </script>
+  </html>
+```
+## 3.keep-alive
+我们之前曾经在一个多标签的界面中使用 is attribute 来切换不同的组件：
+``` html
+  <component v-bind:is="currentTabComponent"></component>
+```  
+当在这些组件之间切换的时候，你有时会想保持这些组件的状态，以避免反复重渲染导致的性能问题。  
+使用keep-alive包裹动态组件,可以缓存组件状态
+``` html
+<keep-alive>
+  <div class="content" :is="dynamic"></div>
+</keep-alive>
+```
+#### 钩子函数
+###### activated
+- 类型：Function
+- 详细：  
+  被 keep-alive 缓存的组件激活时调用。  
+##### deactivated
+- 类型：Function
+- 详细：
+  被 keep-alive 缓存的组件停用时调用。
+  ___ 该钩子在服务器端渲染期间不被调用。 ___  
+
+## 4.Ref $root $parent $nextTick() (熟记)
+### ref
+- 预期：string   
+  ref 被用来给元素或子组件注册引用信息。引用信息将会注册在父组件的 $refs对象上。如果在普通的 DOM 元素上使用，引用指向的就是 DOM 元素；如果用在子组件上，引用就指向组件实例：
+  ``` html
+    <input type="text" v-model="msg" ref="ipt">
+
+  //js
+    addfocus() {
+                  console.log(this.$refs);
+                  this.$refs.ipt.focus()
+            }
+  ```
+  当 v-for 用于元素或组件的时候，引用信息将是包含 DOM 节点或组件实例的数组。   
+  ___ 关于 ref 注册时间的重要说明： ___ 因为 ref 本身是作为渲染结果被创建的，在初始渲染的时候你不能访问它们 - 它们还不存在！$refs 也不是响应式的，因此你不应该试图用它在模板中做数据绑定。
+
+### vm.$root
+- 类型：Vue instance
+- 只读
+- 详细：    
+当前组件树的根 Vue 实例。如果当前实例没有父实例，此实例将会是其自己。
+### vm.$parent  
+可以获取父组件 支持链式编程 如果没有父组件得到的是undefined
+``` html
+  console.log(this.$parent.$parent.$parent)
+```  
+## Vue.nextTick
+- 参数：  
+{Function} [callback]    
+{Object} [context]  
+- 用法：  
+在下次 DOM 更新循环结束之后执行延迟回调。在修改数据之后立即使用这个方法，获取更新后的 DOM。
+``` html
+   mounted() {
+            var h = document.getElementById("pp").innerText
+            console.log(h);
+            this.msg = "值发生改变了"
+            // console.log(h) 只会得到dom修改前的值
+            // nextTick用于获取更新之后的dom元素
+            // this.$nextTick(function () {
+            //     console.log(document.getElementById("pp").innerText);
+            // })
+            //v2.6 nextTick原理:setTimeout
+            setTimeout(function () {
+                console.log(document.getElementById("pp").innerText);
+            }, 20)
+        }
+```  
+## 5.实例生命周期钩子(重点)    
+每个 Vue 实例在被创建时都要经过一系列的初始化过程——例如，需要设置数据监听、编译模板、将实例挂载到 DOM 并在数据变化时更新 DOM 等。同时在这个过程中也会运行一些叫做生命周期钩子的函数，这给了用户在不同阶段添加自己的代码的机会。hook 钩子 回调函数  
+
+## 6.进入/离开 & 列表过渡动画(了解)  
+### 单元素/组件的过渡  
+Vue 提供了 transition 的封装组件，在下列情形中，可以给任何元素和组件添加进入/离开过渡  
+- 条件渲染 (使用 v-if)
+- 条件展示 (使用 v-show)
+- 动态组件
+这里是一个典型的例子：  
+``` html
+  <div id="demo">
+  <button v-on:click="show = !show">
+    Toggle
+  </button>
+  <transition name="fade">
+    <p v-if="show">hello</p>
+  </transition>
+  </div>
+  new Vue({
+    el: '#demo',
+    data: {
+      show: true
+    }
+  })
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
+  }
+```  
+当插入或删除包含在 transition 组件中的元素时，Vue 将会做以下处理：  
+1. 自动嗅探目标元素是否应用了 CSS 过渡或动画，如果是，在恰当的时机添加/删除 CSS 类名。
+2. 如果过渡组件提供了 JavaScript 钩子函数，这些钩子函数将在恰当的时机被调用。
+3. 如果没有找到 JavaScript 钩子并且也没有检测到 CSS 过渡/动画，DOM 操作 (插入/删除) 在下一帧中立即执行。(注意：此指浏览器逐帧动画机制，和 Vue 的 nextTick 概念不同)
+4. v-enter：定义进入过渡的开始状态。在元素被插入之前生效，在元素被插入之后的下一帧移除。
+5. v-enter-active：定义进入过渡生效时的状态。在整个进入过渡的阶段中应用，在元素被插入之前生效，在过渡/动画完成之后移除。这个类可以被用来定义进入过渡的过程时间，延迟和曲线函数。
+6. v-enter-to: 2.1.8版及以上 定义进入过渡的结束状态。在元素被插入之后下一帧生效 (与此同时 v-enter 被移除)，在过渡/动画完成之后移除。
+7. v-leave: 定义离开过渡的开始状态。在离开过渡被触发时立刻生效，下一帧被移除。
+8. v-leave-active：定义离开过渡生效时的状态。在整个离开过渡的阶段中应用，在离开过渡被触发时立刻生效，在过渡/动画完成之后移除。这个类可以被用来定义离开过渡的过程时间，延迟和曲线函数。
+9. v-leave-to: 2.1.8版及以上 定义离开过渡的结束状态。在离开过渡被触发之后下一帧生效 (与此同时 v-leave 被删除)，在过渡/动画完成之后移除。
+
+
+对于这些在过渡中切换的类名来说，如果你使用一个没有名字的 <transition>，则 v- 是这些类名的默认前缀。如果你使用了 <transition name="my-transition">，那么 v-enter 会替换为 my-transition-enter。   
+v-enter-active 和 v-leave-active 可以控制进入/离开过渡的不同的缓和曲线
+### css过渡
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+  <style>
+      .fade-enter,
+      .fade-leave-to {
+          opacity: 0;
+      }
+
+      .fade-enter-active,
+      .fade-leave-active {
+          transition: all 2s;
+      }
+
+      .fade-enter-to,
+      .fade-leave {
+          opacity: 1;
+      }
+
+      .bounce-enter-active {
+          animation: bounce-in .5s;
+      }
+
+      .bounce-leave-active {
+          animation: bounce-in .5s reverse;
+      }
+
+      @keyframes bounce-in {
+          0% {
+              transform: scale(0);
+          }
+
+          50% {
+              transform: scale(1.5);
+          }
+
+          100% {
+              transform: scale(1);
+          }
+      }
+  </style>
+
+  <body>
+      <div id="app">
+          <!-- css过度 -->
+          <transition name="fade">
+              <h1 v-if="isShow">动画</h1>
+          </transition>
+          <button @click="isShow=!isShow">点击</button>
+          <!-- css 动画 -->
+          <transition name="bounce">
+              <h1 v-if="isShow2">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris facilisis enim libero, at
+                  lacinia diam fermentum id. Pellentesque habitant morbi tristique senectus et netus.</h1>
+          </transition>
+      </div>
+  </body>
+
+  </html>
+  <script src="vue.js"></script>
+  <script>
+      let vm = new Vue({
+          el: "#app",
+          data: {
+              isShow: true,
+              isShow2: true,
+              show: true
+          }
+      })
+  </script>
+```  
+### 结合animate.css库使用
+``` html
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+      <!-- cdn方式引入animate.css -->
+      <link href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" rel="stylesheet" type="text/css">
+  </head>
+  <style>
+
+  </style>
+
+  <body>
+      <div id="app">
+          <!-- enter-active-class=""
+              leave-active-class=""
+              可以自定义类名 -->
+          <transition name="custom" enter-active-class="animated rubberBand" leave-active-class="animated jello">
+              <p v-if="isShow">
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Deserunt assumenda maxime quod
+                  possimus quos
+                  veritatis aut necessitatibus quia excepturi obcaecati.
+              </p>
+          </transition>
+          <button @click="isShow=!isShow">点击</button>
+      </div>
+  </body>
+
+  </html>
+  <script src="./vue.js"></script>
+  <script>
+      // 6个类名
+      // enter enter-active enter-to leave leave-active leave-to 
+      let vm = new Vue({
+          el: "#app",
+          data: {
+              isShow: true
+          }
+      })
+  </script>
+```
+
+### 1.案例最终(重点)
+``` html
+    <style>
+        #app {
+            width: 600px;
+            margin: 10px auto;
+        }
+
+        .tb {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .tb th {
+            background-color: #0094ff;
+            color: white;
+        }
+
+        .tb td,
+        .tb th {
+            padding: 5px;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        .add {
+            padding: 5px;
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <body>
+        <div id="app">
+            <div class="add">
+                编号:<input type="text" v-model="code">
+                品牌名称:<input type="text" v-model="productName">
+                <input type="button" value="添加" @click="add">
+            </div>
+
+            <div class="add">
+                品牌名称:<input type="text" placeholder="请输入搜索条件" v-model="searchText">
+            </div>
+
+            <div>
+                <table class="tb">
+                    <tr>
+                        <th>编号</th>
+                        <th>品牌名称</th>
+                        <th>创立时间</th>
+                        <th>操作</th>
+                    </tr>
+                    <tr v-for="(item,index) in arr">
+                        <td>{{item.code}}</td>
+                        <td>{{item.productName}}</td>
+                        <td>{{item.timer}}</td>
+                        <td>
+                            <button @click="del(index)">删除</button>
+                        </td>
+                    </tr>
+                    <tr v-show="!arr.length">
+                        <td colspan="4">没有品牌数据</td>
+                    </tr>
+                    <!-- 动态生成内容tr -->
+                </table>
+            </div>
+        </div>
+    </body>
+    <script src="./vue.js"></script>
+    <script>
+        //1.渲染数据
+        //2.增加数据
+        //3.删除数据
+        const vm = new Vue({
+            el: "#app",
+            data: {
+                oldArr: [],
+                searchText: "",
+                code: "",
+                productName: "",
+                arr: [
+                    {
+                        id: 1,
+                        code: 1,
+                        productName: "品如的衣柜",
+                        timer: new Date().toLocaleTimeString()
+                    },
+                    {
+                        id: 2,
+                        code: 2,
+                        productName: "蔡徐坤的篮球",
+                        timer: new Date().toLocaleTimeString()
+                    },
+                    {
+                        id: 3,
+                        code: 3,
+                        productName: "关羽的马",
+                        timer: new Date().toLocaleTimeString()
+                    },
+                ]
+            },
+            watch: {
+                searchText(newVal) {
+                    // console.log(newVal)
+                    // let str = "蔡徐坤"
+                    // console.log(str.indexOf(""));
+                    //通过newVal去数组里面检索,挨个遍历,检索每个对象之中的productName属性
+                    //返回数组中productName.indexOf(newVal)!==-1
+                    this.arr = this.oldArr.filter(item => item.productName.indexOf(newVal) !== -1)
+                }
+
+            },
+            created() {
+                this.oldArr = [...this.arr]
+            },
+            methods: {
+                del(i) {
+                let res = this.arr.splice(i, 1)
+                    // this.oldArr = this.oldArr.filter(item => item.id !== id)
+                    this.oldArr = this.oldArr.filter(item => item.id !== res[0].id)
+                    // console.log(res);
+                },
+                add() {
+                    if (!this.code || !this.productName) {
+                        alert("编号或者产品名称不能为空")
+                        return
+                    }
+
+                    const code = this.code;
+                    const productName = this.productName;
+                    console.log(code, productName)
+                    //随机生成id
+                    function randomId(num = 4) {
+                        if (isNaN(num) || typeof num == "string") {
+                            throw new Error("传入的值必须是Number类型")
+                        }
+                        if (num >= 10) {
+                            num = 10
+                        }
+                        let str = "0123456789"
+                        let idArr = [];
+                        for (var i = 0; i < num; i++) {
+                            let randomIndex = Math.floor(Math.random() * 10)
+                            idArr.push(str[randomIndex])
+                        }
+                        let id = idArr.join("")
+                        return id
+                    }
+                    let id = randomId(9)
+                    console.log(id)
+                    let obj = {
+                        id,
+                        code,
+                        productName,
+                        timer: new Date().toLocaleTimeString()
+                    }
+
+                    this.arr.push(obj)
+                    this.oldArr.push(obj)
+                    //添加完成之后清空输入框的值
+                    this.code = ""
+                    this.productName = ""
+                }
+            }
+        })
+    </script>
+```
+## 2.Render节点、树以及虚拟 DOM    
+虚拟DOM:框架中的概念,利用js提供的api(document.createElement()),创建结构,模拟真实dom的嵌套结构  
+虚拟DOM的作用:由于虚拟dom是运行于内存中,并非操作的真实dom,所以在更新的时候可以在内存中计算出最后的结果,再一次的更新到dom上,提高性能  
+在深入渲染函数之前，了解一些浏览器的工作原理是很重要的。以下面这段 HTML 为例：  
+``` html
+    <div> 
+        <h1>My title</h1>
+        Some text content
+        <!-- TODO: Add tagline -->
+    </div>
+```  
+当浏览器读到这些代码时，它会建立一个[“DOM 节点”](https://javascript.info/dom-nodes)树来保持追踪所有内容，如同你会画一张家谱树来追踪家庭成员的发展一样。    
+上述 HTML 对应的 DOM 节点树如下图所示：    
+每个元素都是一个节点。每段文字也是一个节点。甚至注释也都是节点。一个节点就是页面的一个部分。就像家谱树一样，每个节点都可以有孩子节点 (也就是说每个部分可以包含其它的一些部分)。
+##### 虚拟 DOM  
+Vue 通过建立一个虚拟 DOM 来追踪自己要如何改变真实 DOM。请仔细看这行代码：  
+``` html
+    return createElement('h1', "我打篮球贼溜")
+```  
+createElement 到底会返回什么呢？其实不是一个实际的 DOM 元素。它更准确的名字可能是 createNodeDescription，因为它所包含的信息会告诉 Vue 页面上需要渲染什么样的节点，包括及其子节点的描述信息。我们把这样的节点描述为“虚拟节点 (virtual node)”，也常简写它为“VNode”。“虚拟 DOM”是我们对由 Vue 组件树建立起来的整个 VNode 树的称呼。  
+##### createElement 参数    
+接下来你需要熟悉的是如何在 createElement 函数中使用模板中的那些功能。这里是 createElement 接受的参数：  
+``` html
+    // @returns {VNode}
+    createElement(
+        // {String | Object | Function}
+        // 一个 HTML 标签名、组件选项对象，或者
+        // resolve 了上述任何一种的一个 async 函数。必填项。
+        'div',
+
+        // {Object}
+        // 一个与模板中属性对应的数据对象。可选。
+        {
+            // (详情深入数据对象)
+        },
+
+        // {String | Array}
+        // 子级虚拟节点 (VNodes)，由 `createElement()` 构建而成，
+        // 也可以使用字符串来生成“文本虚拟节点”。可选。
+        [
+            '先写一些文字',
+            createElement('h1', '一则头条'),
+            createElement(MyComponent, {
+            props: {
+                someProp: 'foobar'
+            }
+            })
+        ]
+    )
+```
+##### 深入对象
+``` html
+    {
+        // 与 `v-bind:class` 的 API 相同，
+        // 接受一个字符串、对象或字符串和对象组成的数组
+        'class': {
+            foo: true,
+            bar: false
+        },
+        // 与 `v-bind:style` 的 API 相同，
+        // 接受一个字符串、对象，或对象组成的数组
+        style: {
+            color: 'red',
+            fontSize: '14px'
+        },
+        // 普通的 HTML 特性
+        attrs: {
+            id: 'foo'
+        },
+        ........
+    }
+```
+让我们深入一个简单的例子，这个例子里 render 函数很实用。假设我们要生成一个表格,并且让用户通过slot的方式随意的传入tr,但是在H5的渲染中,tr必须放在tobody,普通写法会造成tr和tbody并行的情况,这个时候用render最合适不过  
+``` html
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+    </head>
+    <style>
+        td {
+            border: 1px solid red;
+        }
+    </style>
+    <body>
+        <div id="app">
+            <qf-table>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+                <qf-table-row></qf-table-row>
+            </qf-table>
+        </div>
+    </body>
+
+    </html>
+    <template id="qftr">
+        <tr>
+            <td>7777</td>
+            <td>7777</td>
+            <td>7777</td>
+            <td>7777</td>
+        </tr>
+    </template>
+    <script src="./vue.js"></script>
+    <script>
+        Vue.component('qf-table', {
+            created() {
+                console.log(this)
+            },
+            render(h) {
+                return h('table', {
+                    style: {
+                        border:'1px solid red'
+                    }
+                }, [h('tbody', this.$slots.default)])
+            }
+        })
+
+        Vue.component('qf-table-row', {
+            template: "#qftr"
+        })
+
+        const vm = new Vue({
+            el: "#app"
+        })
+    </script>
+``` 

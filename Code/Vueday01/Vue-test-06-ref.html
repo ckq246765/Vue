@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue-test-06-ref.html</title>
+</head>
+
+<body>
+    <div id="app">
+        <fieldset>
+            <legend>Vue-test-06-ref.html</legend>
+            <h1>{{msg}}</h1>
+            <input type="text" ref="myRef"></input>
+            <button @click="focus">点击获取焦点</button>
+
+            <child-com ref="myRef2"></child-com>
+            <button @click="get">点击获取子组件焦点</button>
+        </fieldset>
+    </div>
+</body>
+
+</html>
+<component id="child">
+    <legend>child</legend>
+    <h1>{{msg}}</h1>
+    <sub-child></sub-child>
+</component>
+
+<component id="sub">
+    <legend>sub-child</legend>
+</component>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    // ref 被用来给元素或子组件注册引用信息。引用信息将会注册在父组件的 $refs对象上。
+    // 如果在普通的 DOM 元素上使用，引用指向的就是 DOM 元素；
+    // 如果用在子组件上，引用就指向组件实例：
+    const vm = new Vue({
+        el: "#app",
+        data: {
+            msg: "那是我日夜思念,深深爱着的人啊,到底我该如何表达,她会接收我吗"
+        },
+        method: {
+            focus() {
+                this.$refs.myRef.focus()
+            },
+            get() { // 不建议使用
+                this.$refs.myRef2.msg = "值被强制更改了"
+            }
+        },
+        mounted() { // vm.$root 当前组件树的根 Vue 实例。
+            // 如果当前实例没有父实例，此实例将会是其自己。
+            console.log(this.$root)
+        },
+        components: {
+            "child-com":{
+                template: "#child",
+                data() {
+                    return {
+                        msg: "这是一个子组件"
+                    }
+                },
+                mounted() { // this.$root 得到当前实例的根实例
+                    console.log(this.$root)
+                    this.$root.msg = "根实例的值被修改了"
+                },
+                components: {
+                    template: "#sub",
+                    "sub-child":{
+                        mounted() { // 可以获取父组件 支持链式编程 如果没有父组件得到的是undefined
+                            console.log(this.$parent.$parent)
+                        }
+                    }
+                }
+            }
+        }
+    })
+</script>
